@@ -29,6 +29,8 @@ class Prediction:
 
 def do_prediction(gray):
     rects = detector(gray, 1)
+    if len(rects) == 0:
+        return None
     shape = predictor(gray, rects[0])
 
     out = Prediction()
