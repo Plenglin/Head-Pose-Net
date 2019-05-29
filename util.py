@@ -5,12 +5,15 @@ import cv2
 from scipy.stats import zscore
 
 
+LANDMARKS = 68
+FEATURES = LANDMARKS * (LANDMARKS - 1) // 2
+
 detector = dlib.get_frontal_face_detector()
 predictor = dlib.shape_predictor('shape_predictor_68_face_landmarks.dat')
 
 class Prediction:
     def __init__(self):
-        self.points = [None] * 68
+        self.points = [None] * LANDMARKS
     
     def get_distances(self):
         out = []
@@ -34,7 +37,7 @@ def do_prediction(gray):
     shape = predictor(gray, rects[0])
 
     out = Prediction()
-    for i in range(0, 68):
+    for i in range(0, LANDMARKS):
         pt = shape.part(i)
         out.points[i] = (pt.x, pt.y)
     return out

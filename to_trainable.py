@@ -3,6 +3,8 @@ import util
 import pandas as pd
 import cv2
 
+import multiprocessing as mp
+
 
 with open('data.csv', 'r') as file:
     data = list(csv.DictReader(file))
@@ -10,8 +12,8 @@ with open('data.csv', 'r') as file:
 inputs = []
 outputs = []
 
-for i, row in enumerate(data):
-    print(f'processing {i}')
+
+def worker_thread(row):
     im_path = row['Path']
     img = cv2.imread(im_path)
     img = util.image_resize(img, height=400)
@@ -19,11 +21,15 @@ for i, row in enumerate(data):
 
     prediction = util.do_prediction(gray)
     if prediction is None: 
-        continue
-    inputs.append(prediction.get_normalized_distances())
-    outputs.append([row['Yaw'], row['Pitch']])
+        return None
+    return prediction.get_normalized_distances(), [row['Yaw'], row['Pitch']]
 
-inputs = pd.DataFrame(inputs, columns=[f'len_{str(n).zfill(4)}' for n in range(68 * 67 // 2)])
+with mp.Pool(mp.cpu_count * 2) as pool:
+    processed = pool.map(worker_thread, data)
+
+inputs, outputs = zip(*processed)
+
+inputs = pd.DataFrame(inputs, columns=[f'len_{str(n).zfill(4)}' for n in range(util.FEATURES)])
 outputs = pd.DataFrame(outputs, columns=['Yaw', 'Pitch'])
-inputs.to_csv('ml_inputs.csv')
+inputs.to_csv('ml_inputs.csv', float_format='%.6f')
 outputs.to_csv('ml_outputs.csv')
