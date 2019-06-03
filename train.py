@@ -17,7 +17,7 @@ X_train, X_test, y_train, y_test = train_test_split(inputs, outputs, shuffle=Tru
 
 with tf.Session() as sess:
     tf.keras.backend.set_session(sess)
-    posenet, inputs, outputs = model.create_model()
+    posenet = model.create_model()
     loss = tf.losses.mean_squared_error(labels=y_train, predictions=posenet(X_train))
     optimizer = tf.train.AdamOptimizer(0.01)
     train = optimizer.minimize(loss)
@@ -30,14 +30,8 @@ with tf.Session() as sess:
         batch_size=100, 
         callbacks=[early_stop])
     
-    os.makedirs('./saved_models')
+    try:
+        os.makedirs('./saved_models')
+    except FileExistsError:
+        pass
     tf.contrib.saved_model.save_keras_model(posenet, './saved_models')
-
-    loss, mae, mse = posenet.evaluate(X_test, y_test)
-
-    print("Testing set Mean Abs Error: {:5.2f}".format(mae))
-
-    y_test_hat = posenet.predict(X_test)
-    residuals = y_test_hat - y_test
-    plt.hist(residuals['Yaw'], bins = 25)
-    plt.show()

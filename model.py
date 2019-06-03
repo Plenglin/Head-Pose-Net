@@ -16,4 +16,4 @@ def create_model():
         optimizer=tf.train.AdamOptimizer(0.001), 
         loss='mean_squared_error',
         metrics=['mean_absolute_error', 'mean_squared_error'])
-    return model, inputs, outputs
+    return model
