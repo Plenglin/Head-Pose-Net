@@ -2,45 +2,32 @@ import math
 import dlib
 import numpy as np
 import cv2
-from scipy.stats import zscore
+import random
 
 
-LANDMARKS = 68
-FEATURES = LANDMARKS * (LANDMARKS - 1) // 2
 
-detector = dlib.get_frontal_face_detector()
-predictor = dlib.shape_predictor('shape_predictor_68_face_landmarks.dat')
+def generate_image_set(image, fwd, down, face_center):
+    angle = random.random() * math.pi / 2
+    angleDeg = math.degrees(angle)
+    scale = random.random() + 0.5
+    x, y = face_center
+    s = math.sin(angle)
+    c = math.cos(angle)
+    M = np.array([
+        [c, s, 0],
+        [-s, c, 0],
+        [0, 0, 1]
+    ], dtype=np.float)
+    am = cv2.getRotationMatrix2D(face_center, angleDeg, scale)
+    yield image[(x - 224)//2:(x+224)//2, (y - 224)//2:(y + 224)//2], fwd, down
+    fwd = np.matmul(M, fwd)
+    down = np.matmul(M, down)
+    image = cv2.warpAffine(image, am, (224, 224))
+    yield image, fwd, down
+    flip = np.array([-1, 1, 1], dtype=np.float)
+    image = cv2.flip(image, 1)
+    yield image, fwd * flip, down * flip
 
-class Prediction:
-    def __init__(self):
-        self.points = [None] * LANDMARKS
-    
-    def get_distances(self):
-        out = []
-        for i in range(68):
-            x1, y1 = self.points[i]
-            for j in range(i + 1, 68):
-                x2, y2 = self.points[j]
-                dx = x1 - x2
-                dy = y1 - y2
-                out.append(math.sqrt(dx * dx + dy * dy))
-        return out
-    
-    def get_normalized_distances(self):
-        return zscore(self.get_distances())
-
-
-def do_prediction(gray):
-    rects = detector(gray, 1)
-    if len(rects) == 0:
-        return None
-    shape = predictor(gray, rects[0])
-
-    out = Prediction()
-    for i in range(0, LANDMARKS):
-        pt = shape.part(i)
-        out.points[i] = (pt.x, pt.y)
-    return out
 
 def image_resize(image, width = None, height = None, inter = cv2.INTER_AREA):
     # initialize the dimensions of the image to be resized and

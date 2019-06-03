@@ -21,7 +21,7 @@ for person in os.listdir('data/pose2'):
         if not match:
             continue
         yaw = math.radians(float(match.group(1)))
-        add_image(person_dir + '/' + image, (math.sin(yaw), 0.0, math.cos(yaw)), (0.0, -1.0, 0.0))
+        add_image(person_dir + '/' + image, (math.sin(yaw), 0.0, math.cos(yaw)), (0.0, 1.0, 0.0))
 
 
 for person in os.listdir('data/HeadPoseImageDatabase'):
@@ -40,7 +40,7 @@ for person in os.listdir('data/HeadPoseImageDatabase'):
         cp = math.cos(pitch)
         sp = math.sin(pitch)
 
-        fd = np.array([[1, 0], [0, 0], [-1, 0]], dtype=np.float)
+        fd = np.array([[1, 0], [0, 1], [0, 0]], dtype=np.float)
         fd = np.matmul([
                 [1, 0, 0], 
                 [0, cp, sp], 
@@ -57,6 +57,7 @@ for person in os.listdir('data/HeadPoseImageDatabase'):
 
 with open('data.csv', 'w', newline='') as file:
     writer = csv.writer(file)
-    writer.writerow('filename fx fy fz ux uy uz'.split())
+    writer.writerow('filename fx fy fz dx dy dz'.split())
     for p, f, d in images:
+        #print(p, f, d)
         writer.writerow((p, *f, *d))
