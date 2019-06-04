@@ -49,11 +49,7 @@ def create_model():
     drop_2 = keras.layers.Dropout(rate=0.5, name='drop_2')(hidden_2)
     hidden_3 = keras.layers.Dense(20, activation='relu', kernel_regularizer='l2')(drop_2)
     drop_3 = keras.layers.Dropout(rate=0.5, name='drop_3')(hidden_3)
-    outputs = keras.layers.Dense(6, activation='linear')(drop_3)
+    outputs = keras.layers.Dense(6, activation='linear', name='outputs')(drop_3)
 
     model = keras.Model(inputs=inputs, outputs=outputs)
-    model.compile(
-        optimizer=tf.train.AdamOptimizer(0.001), 
-        loss='mean_squared_error',
-        metrics=['mean_absolute_error', 'mean_squared_error'])
     return model
