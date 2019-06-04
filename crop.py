@@ -3,12 +3,10 @@ import dlib
 import pandas as pd
 
 
-detector = dlib.get_frontal_face_detector()
 listing = pd.read_csv('data.csv', header=0)
 i = 0
 for _, row in listing.iterrows():
     img = cv2.imread(row['filename'])
-    rects = detector(img)
     if len(rects) == 0:
         continue
     rect = rects[0]

@@ -6,11 +6,13 @@ import random
 
 
 
-def generate_image_set(image, fwd, down, face_center):
+def generate_image_set(image, center, size, fwd, down):
     angle = random.random() * math.pi / 2
     angleDeg = math.degrees(angle)
     scale = random.random() + 0.5
-    x, y = face_center
+    x, y = center
+    x0 = x - size // 2
+    y0 = y - size // 2
     s = math.sin(angle)
     c = math.cos(angle)
     M = np.array([
@@ -18,11 +20,15 @@ def generate_image_set(image, fwd, down, face_center):
         [-s, c, 0],
         [0, 0, 1]
     ], dtype=np.float)
-    am = cv2.getRotationMatrix2D(face_center, angleDeg, scale)
-    yield image[(x - 224)//2:(x+224)//2, (y - 224)//2:(y + 224)//2], fwd, down
+    padded = cv2.copyMakeBorder(image, size, size, size, size, cv2.BORDER_ISOLATED)
+    center_crop = padded[y0 + size:y0 + 2 * size, x0 + size:x0 + 2 * size]
+    am = cv2.getRotationMatrix2D(center, angleDeg, scale)
+    am[0, 2] -= x0
+    am[1, 2] -= y0
+    yield center_crop, fwd, down
     fwd = np.matmul(M, fwd)
     down = np.matmul(M, down)
-    image = cv2.warpAffine(image, am, (224, 224))
+    image = cv2.warpAffine(image, am, (size, size))
     yield image, fwd, down
     flip = np.array([-1, 1, 1], dtype=np.float)
     image = cv2.flip(image, 1)
@@ -79,7 +85,5 @@ def get_square_face_bb(img):
     size = int(max(w, h) * 1.3)
     x0 = cx - size // 2
     y0 = cy - size // 2
-    padded = cv2.copyMakeBorder(img, size, size, size, size, cv2.BORDER_ISOLATED)
-    img = padded[y0 + size:y0 + 2 * size, x0 + size:x0 + 2 * size]
     return cx, cy, size
 
