@@ -5,6 +5,7 @@ import cv2
 import random
 
 
+flip = np.array([-1, 1, 1], dtype=np.float)
 
 def generate_image_set(image, center, size, fwd, down):
     angle = random.random() * math.pi / 2
@@ -25,16 +26,27 @@ def generate_image_set(image, center, size, fwd, down):
     am = cv2.getRotationMatrix2D(center, angleDeg, scale)
     am[0, 2] -= x0
     am[1, 2] -= y0
-    yield center_crop, fwd, down
+    yield [center_crop, (*fwd.flatten(), *down.flatten())]
     fwd = np.matmul(M, fwd)
     down = np.matmul(M, down)
     image = cv2.warpAffine(image, am, (size, size))
-    yield image, fwd, down
-    flip = np.array([-1, 1, 1], dtype=np.float)
+    yield [image, (*fwd.flatten(), *down.flatten())]
     image = cv2.flip(image, 1)
-    yield image, fwd * flip, down * flip
+    yield [image, (*(fwd * flip).flatten(), *(down * flip).flatten())]
 
-# def create_gen_from_file_listing(file_listing, hairnet):
+
+def create_gen_from_file_listing(file_listing):
+    while True:
+        select = file_listing.iloc[3423]
+
+        img = cv2.imread(select['filename'], cv2.IMREAD_GRAYSCALE)
+        fwd = np.array(select[['fx', 'fy', 'fz']], dtype=np.float)
+        down = np.array(select[['dx', 'dy', 'dz']], dtype=np.float)
+        center = tuple(select[['cx', 'cy']])
+        size = select['size']
+        for t in generate_image_set(img, center, size, fwd, down):
+            t[0] = np.reshape(cv2.resize(t[0], (224, 224)), (224, 224, 1))
+            yield tuple(t)
 
 def image_resize(image, width = None, height = None, inter = cv2.INTER_AREA):
     # initialize the dimensions of the image to be resized and

@@ -14,12 +14,10 @@ EPOCHS = 1000
 STEPS_PER_EPOCH = 100
 BATCH_SIZE = 10
 
-file_listing = pd.read_csv("train.csv")
-with open('train_faceless.txt', 'r') as f:
-    facelesses = [l[:-1] for l in f.readlines()]
+file_listing = pd.read_csv("data.csv")
 
-gen = lambda: util.create_gen_from_file_listing(file_listing, facelesses)
-dataset = tf.data.Dataset.from_generator(gen, (tf.float32, tf.float32), ((224, 224, 3), (6,)))
+gen = lambda: util.create_gen_from_file_listing(file_listing)
+dataset = tf.data.Dataset.from_generator(gen, (tf.float32, tf.float32), ((224, 224, 1), (6,)))
 iterator = (dataset
     .prefetch(BATCH_SIZE * 4)
     .batch(BATCH_SIZE)
@@ -30,7 +28,6 @@ images, labels = iterator.get_next()
 
 with tf.Session() as sess:
     tf.keras.backend.set_session(sess)
-    hairnet = tf.contrib.saved_model.load_keras_model('./hairnet')
     posenet = model.create_model()
 
     posenet.compile(

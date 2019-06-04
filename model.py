@@ -38,18 +38,20 @@ def create_model():
     pool_5 = keras.layers.MaxPool2D((2, 2), name='pool_5')(conv_5)
 
     # 7
-    conv_6 = keras.layers.Conv2D(256, (3, 3), padding='same', activation='relu', name='conv_5a')(pool_5)
-    conv_6 = keras.layers.Conv2D(256, (3, 3), padding='same', activation='relu', name='conv_5b')(conv_6)
+    conv_6 = keras.layers.Conv2D(256, (3, 3), padding='same', activation='relu', name='conv_6a')(pool_5)
+    conv_6 = keras.layers.Conv2D(256, (3, 3), padding='same', activation='relu', name='conv_6b')(conv_6)
     pool_6 = keras.layers.MaxPool2D((2, 2), name='pool_6')(conv_6)
 
+    flatten = keras.layers.Flatten()(pool_6)
+
     # Hidden
-    hidden_1 = keras.layers.Dense(20, activation='relu', kernel_regularizer='l2')(pool_6)
+    hidden_1 = keras.layers.Dense(20, activation='relu', kernel_regularizer='l2')(flatten)
     drop_1 = keras.layers.Dropout(rate=0.5, name='drop_1')(hidden_1)
     hidden_2 = keras.layers.Dense(20, activation='relu', kernel_regularizer='l2')(drop_1)
     drop_2 = keras.layers.Dropout(rate=0.5, name='drop_2')(hidden_2)
     hidden_3 = keras.layers.Dense(20, activation='relu', kernel_regularizer='l2')(drop_2)
     drop_3 = keras.layers.Dropout(rate=0.5, name='drop_3')(hidden_3)
-    outputs = keras.layers.Dense(6, activation='linear', name='outputs')(drop_3)
+    outputs = keras.layers.Dense(6, activation='linear', name='output')(drop_3)
 
     model = keras.Model(inputs=inputs, outputs=outputs)
     return model

@@ -14,7 +14,7 @@ size = select['size']
 
 out = list(util.generate_image_set(img, center, size, fwd, down))
 print(len(out))
-for i, (im, f, d) in enumerate(out):
-    print(f, d)
+for i, (im, l) in enumerate(out):
+    print(l)
     cv2.imshow(str(i), im)
 cv2.waitKey()
