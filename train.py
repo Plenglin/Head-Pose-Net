@@ -12,7 +12,7 @@ import util
 LOG_DIR = "./logs"
 EPOCHS = 1000
 STEPS_PER_EPOCH = 100
-BATCH_SIZE = 10
+BATCH_SIZE = 30
 
 file_listing = pd.read_csv("data.csv")
 

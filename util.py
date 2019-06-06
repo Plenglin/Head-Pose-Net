@@ -35,6 +35,13 @@ def generate_image_set(image, center, size, fwd, down):
     yield [image, (*(fwd * flip).flatten(), *(down * flip).flatten())]
 
 
+def crop_bb(image, bb):
+    x, y, size = bb
+    hsize = size // 2
+    padded = cv2.copyMakeBorder(image, hsize, hsize, hsize, hsize, cv2.BORDER_ISOLATED)
+    return padded[x:x + size, y:y + size]
+
+
 def create_gen_from_file_listing(file_listing):
     while True:
         select = file_listing.iloc[3423]

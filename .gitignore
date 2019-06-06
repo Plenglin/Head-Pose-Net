@@ -6,6 +6,8 @@ ml_outputs.csv
 shape_predictor_68_face_landmarks.dat
 saved_models/
 hairnet/
+training/
+logs/
 *.tflite
 
 # Created by https://www.gitignore.io/api/python,visualstudiocode
