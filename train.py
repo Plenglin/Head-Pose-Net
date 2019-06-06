@@ -25,6 +25,10 @@ iterator = (dataset
     .make_one_shot_iterator())
 images, labels = iterator.get_next()
 
+def dot_prod_loss(y_true, y_pred):
+    dot = tf.tensordot(y_true, y_pred, 1)
+    error = dot - 1
+    return tf.square(error)  # As dot approaches 1, the vector becomes closer to desired
 
 with tf.Session() as sess:
     tf.keras.backend.set_session(sess)
@@ -32,8 +36,8 @@ with tf.Session() as sess:
 
     posenet.compile(
         optimizer=tf.train.AdamOptimizer(0.001),
-        loss="mean_squared_error",
-        metrics=["mean_absolute_error", "mean_squared_error"],   
+        loss=dot_prod_loss,
+        metrics=[dot_prod_loss],   
     )
 
     early_stop = tf.keras.callbacks.EarlyStopping(monitor="loss", patience=50)

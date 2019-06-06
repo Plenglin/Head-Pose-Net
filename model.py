@@ -9,10 +9,10 @@ def create_model():
     # Adapted AlexNet
     inputs = keras.Input(shape=(224, 224, 1), name='input')
 
-    conv_1 = keras.layers.Conv2D(96, (11, 11), (4, 4), padding='valid', activation='relu', name='conv_1a')(inputs)
+    conv_1 = keras.layers.Conv2D(96, (11, 11), (4, 4), padding='valid', activation='relu', name='conv_1')(inputs)
     pool_1 = keras.layers.MaxPool2D((3, 3), (2, 2), name='pool_1')(conv_1)
 
-    conv_2 = keras.layers.Conv2D(256, (5, 5), (1, 1), padding='valid', activation='relu', name='conv_2a')(pool_1)
+    conv_2 = keras.layers.Conv2D(256, (5, 5), (1, 1), padding='valid', activation='relu', name='conv_2')(pool_1)
     pool_2 = keras.layers.MaxPool2D((2, 2), (2, 2), name='pool_2')(conv_2)
 
     conv_3 = keras.layers.Conv2D(384, (3, 3), (1, 1), padding='valid', activation='relu', name='conv_3')(pool_2)
