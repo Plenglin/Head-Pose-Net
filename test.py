@@ -10,6 +10,16 @@ import util
 import math
 
 
+def draw_axis(img, o, l, f, d):
+    points = (np.array([f, d, np.cross(f, d)]) * l + o)
+    points = points.astype(np.int)
+    o = o.astype(np.int)
+    proj_or = o[0], o[1]
+    print(points)
+    img = cv2.line(img, proj_or, (points[0, 0], points[0, 1]), (255,0,0), 3)
+    img = cv2.line(img, proj_or, (points[1, 0], points[1, 1]), (0,255,0), 3)
+    img = cv2.line(img, proj_or, (points[2, 0], points[2, 1]), (0,0,255), 3)
+    return img
 
 config = tf.ConfigProto()
 config.gpu_options.allow_growth = True
@@ -34,5 +44,6 @@ with tf.Session(graph=graph, config=config) as sess:
             (xf, yf, zf, xd, yd, zd), = sess.run(output_layer, feed_dict={"input:0": [ml_in]})
             f = np.array([xf, yf, zf])
             d = np.array([xd, yd, zd])
+            draw_axis(frame, np.array([100., 100., 0.], dtype=np.float), 100, f, d)
             print(f"FPS: {1 / (time.time() - start)}, {f} {d} dp={np.dot(f, d)} p={math.degrees(math.atan2(yf, zf))} y={math.degrees(math.atan2(zf, xf))}")
         cv2.imshow('img', frame)

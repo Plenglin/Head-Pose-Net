@@ -30,7 +30,8 @@ def create_model():
     drop_2 = keras.layers.Dropout(rate=0.5, name='drop_2')(hidden_2)
     hidden_3 = keras.layers.Dense(4096, activation='relu', kernel_regularizer='l2', name='hidden_3')(drop_2)
     drop_3 = keras.layers.Dropout(rate=0.5, name='drop_3')(hidden_3)
-    outputs = keras.layers.Dense(6, activation='linear', name='output')(drop_3)
+    out_fwd = keras.layers.Dense(3, activation='linear', name='out_fwd')(drop_3)
+    out_down = keras.layers.Dense(3, activation='linear', name='out_down')(drop_3)
 
-    model = keras.Model(inputs=inputs, outputs=outputs)
+    model = keras.Model(inputs=inputs, outputs=[out_fwd, out_down], name='posenet')
     return model

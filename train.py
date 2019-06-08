@@ -7,9 +7,10 @@ import os
 
 import model
 import util
+import time
 
 
-LOG_DIR = "./logs"
+LOG_DIR = "./logs/" + str(int(time.time()))
 EPOCHS = 1000
 STEPS_PER_EPOCH = 100
 BATCH_SIZE = 30
@@ -18,26 +19,32 @@ file_listing = pd.read_csv("data.csv")
 
 gen = lambda: util.create_gen_from_file_listing(file_listing)
 dataset = tf.data.Dataset.from_generator(gen, (tf.float32, tf.float32), ((224, 224, 1), (6,)))
-iterator = (dataset
-    .prefetch(BATCH_SIZE * 4)
-    .batch(BATCH_SIZE)
-    .repeat()
-    .make_one_shot_iterator())
-images, labels = iterator.get_next()
 
-def dot_prod_loss(y_true, y_pred):
-    dot = tf.tensordot(y_true, y_pred, 1)
-    error = dot - 1
-    return tf.square(error)  # As dot approaches 1, the vector becomes closer to desired
+def dot_error(y_true, y_pred):
+    print(y_pred.shape)
+    with tf.name_scope('dot_error'):
+        dot = tf.reduce_sum(y_true * y_pred, 1)
+        return dot - 1
+
+def square_dot_error(y_true, y_pred):
+    with tf.name_scope('square_dot_error'):
+        return tf.square(dot_error(y_true, y_pred))
 
 with tf.Session() as sess:
     tf.keras.backend.set_session(sess)
-    posenet = model.create_model()
+    with tf.name_scope('posenet'):
+        posenet = model.create_model()
+    iterator = (dataset
+        .prefetch(BATCH_SIZE * 4)
+        .batch(BATCH_SIZE)
+        .repeat()
+        .make_one_shot_iterator())
+    images, labels = iterator.get_next()
 
     posenet.compile(
         optimizer=tf.train.AdamOptimizer(0.001),
-        loss=dot_prod_loss,
-        metrics=[dot_prod_loss],   
+        loss={'out_fwd': square_dot_error, 'out_down': square_dot_error},
+        metrics=['mean_squared_error'],   
     )
 
     early_stop = tf.keras.callbacks.EarlyStopping(monitor="loss", patience=50)

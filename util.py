@@ -26,13 +26,13 @@ def generate_image_set(image, center, size, fwd, down):
     am = cv2.getRotationMatrix2D(center, angleDeg, scale)
     am[0, 2] -= x0
     am[1, 2] -= y0
-    yield [center_crop, (*fwd.flatten(), *down.flatten())]
+    yield [center_crop, [*fwd.flatten()], [*down.flatten()]]
     fwd = np.matmul(M, fwd)
     down = np.matmul(M, down)
     image = cv2.warpAffine(image, am, (size, size))
-    yield [image, (*fwd.flatten(), *down.flatten())]
+    yield [image, [*fwd.flatten()], [*down.flatten()]]
     image = cv2.flip(image, 1)
-    yield [image, (*(fwd * flip).flatten(), *(down * flip).flatten())]
+    yield [image, [*(fwd * flip).flatten()], [*(down * flip).flatten()]]
 
 
 def crop_bb(image, bb):
@@ -44,16 +44,16 @@ def crop_bb(image, bb):
 
 def create_gen_from_file_listing(file_listing):
     while True:
-        select = file_listing.iloc[3423]
-
-        img = cv2.imread(select['filename'], cv2.IMREAD_GRAYSCALE)
-        fwd = np.array(select[['fx', 'fy', 'fz']], dtype=np.float)
-        down = np.array(select[['dx', 'dy', 'dz']], dtype=np.float)
-        center = tuple(select[['cx', 'cy']])
-        size = select['size']
-        for t in generate_image_set(img, center, size, fwd, down):
-            t[0] = np.reshape(cv2.resize(t[0], (224, 224)), (224, 224, 1))
-            yield tuple(t)
+        for _, select in file_listing.iterrows():
+            print(select)
+            img = cv2.imread(select['filename'], cv2.IMREAD_GRAYSCALE)
+            fwd = np.array(select[['fx', 'fy', 'fz']], dtype=np.float)
+            down = np.array(select[['dx', 'dy', 'dz']], dtype=np.float)
+            center = tuple(select[['cx', 'cy']])
+            size = select['size']
+            for i, f, d in generate_image_set(img, center, size, fwd, down):
+                i = np.reshape(cv2.resize(i, (224, 224)), (224, 224, 1))
+                yield i, {'out_fwd': f, 'out_down': d}
 
 def image_resize(image, width = None, height = None, inter = cv2.INTER_AREA):
     # initialize the dimensions of the image to be resized and
