@@ -7,10 +7,10 @@ import os
 
 import model
 import util
-import time
+import datetime
 
 
-LOG_DIR = "./logs/" + str(int(time.time()))
+LOG_DIR = "./logs/" + str(datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S'))
 EPOCHS = 1000
 STEPS_PER_EPOCH = 100
 BATCH_SIZE = 30
@@ -21,7 +21,6 @@ gen = lambda: util.create_gen_from_file_listing(file_listing)
 dataset = tf.data.Dataset.from_generator(gen, (tf.float32, tf.float32), ((224, 224, 1), (6,)))
 
 def dot_error(y_true, y_pred):
-    print(y_pred.shape)
     with tf.name_scope('dot_error'):
         dot = tf.reduce_sum(y_true * y_pred, 1)
         return dot - 1
@@ -35,8 +34,8 @@ with tf.Session() as sess:
     with tf.name_scope('posenet'):
         posenet = model.create_model()
     iterator = (dataset
-        .prefetch(BATCH_SIZE * 4)
         .batch(BATCH_SIZE)
+        .prefetch(8)
         .repeat()
         .make_one_shot_iterator())
     images, labels = iterator.get_next()
@@ -44,7 +43,8 @@ with tf.Session() as sess:
     posenet.compile(
         optimizer=tf.train.AdamOptimizer(0.001),
         loss={'out_fwd': square_dot_error, 'out_down': square_dot_error},
-        metrics=['mean_squared_error'],   
+        loss_weights={"out_fwd": 1.0, "out_down": 1.0},
+        #metrics=['mean_squared_error'],   
     )
 
     early_stop = tf.keras.callbacks.EarlyStopping(monitor="loss", patience=50)

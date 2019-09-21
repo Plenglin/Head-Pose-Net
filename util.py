@@ -26,13 +26,13 @@ def generate_image_set(image, center, size, fwd, down):
     am = cv2.getRotationMatrix2D(center, angleDeg, scale)
     am[0, 2] -= x0
     am[1, 2] -= y0
-    yield [center_crop, [*fwd.flatten()], [*down.flatten()]]
+    yield [center_crop, fwd.flatten(), down.flatten()]
     fwd = np.matmul(M, fwd)
     down = np.matmul(M, down)
     image = cv2.warpAffine(image, am, (size, size))
-    yield [image, [*fwd.flatten()], [*down.flatten()]]
+    yield [image, fwd.flatten(), down.flatten()]
     image = cv2.flip(image, 1)
-    yield [image, [*(fwd * flip).flatten()], [*(down * flip).flatten()]]
+    yield [image, (fwd * flip).flatten(), (down * flip).flatten()]
 
 
 def crop_bb(image, bb):
@@ -45,7 +45,6 @@ def crop_bb(image, bb):
 def create_gen_from_file_listing(file_listing):
     while True:
         for _, select in file_listing.iterrows():
-            print(select)
             img = cv2.imread(select['filename'], cv2.IMREAD_GRAYSCALE)
             fwd = np.array(select[['fx', 'fy', 'fz']], dtype=np.float)
             down = np.array(select[['dx', 'dy', 'dz']], dtype=np.float)
@@ -106,3 +105,16 @@ def get_square_face_bb(img):
     y0 = cy - size // 2
     return cx, cy, size
 
+if __name__ == "__main__":
+    import cv2
+    import pandas as pd
+    import util
+    import numpy as np
+
+    file_listing = pd.read_csv('data.csv', header=0)
+    select = file_listing.iloc[3423]
+
+    for i, (im, l) in enumerate(util.create_gen_from_file_listing(file_listing)):
+        print(l)
+        cv2.imshow("image", im)
+        cv2.waitKey()
